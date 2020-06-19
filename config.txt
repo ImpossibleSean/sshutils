@@ -1,0 +1,3 @@
+show run config
+show mac address table
+show more things then just that
