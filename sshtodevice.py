@@ -23,11 +23,28 @@ def excelimportcol(filename, sheetname='Sheet1'):
     return excellist
 
 
+def kwargsfromdict(device):
+    if 'device_type' not in device or \
+            device['device_type'] == '' or \
+            device['device_type'] is None:
+        device_type = 'autodetect'
+    else:
+        device_type = device['device_type']
+    connect_kwargs = {'device_type': device_type,
+                      'host': device['IP'],
+                      'username': device['username'],
+                      'password': device['password']}
+    if device_type == 'autodetect':
+        connect_kwargs['device_type'] = autodetect(connect_kwargs)
+
+    return connect_kwargs
+
+
 def autodetect(connect_kwargs):
     try:
         net_connect = SSHDetect(**connect_kwargs)
         print(net_connect.autodetect())
-        return net_connect
+        return net_connect.autodetect()
 
     except NetMikoTimeoutException:
         print('The IP address: {} did not respond, it might be unreachable'.format(connect_kwargs['host']))
@@ -45,30 +62,12 @@ def get_connection(connect_kwargs):
         print('Authentication failed for IP address: {}'.format(connect_kwargs['host']))
 
 
-def gathershowoutput(device, name):
+def sendcommands(net_connect, commandset, name):
     print('Connecting to ' + name)
-    try:
-        connect_kwargs = { 'device_type': device['device_type'],
-                                'host': device['IP'],
-                                'username': device['username'],
-                                'password':device['password']}
-        print(net_connect.autodetect())
-        #net_connect = ConnectHandler(**device)
-        output = net_connect.connection.send_command('vcgencmd measure_temp')
+    for command in commandset:
+        output = net_connect.send_command(command)
         print(output)
-        # net_connect.find_prompt()
 
-        # if "#" in net_connect.find_prompt():
-        #     print('Connected to ' + net_connect.find_prompt().rstrip('#'))
-        #     showIpIntBr = net_connect.send_command("show ip int br")
-        #     print(showIpIntBr)
-        #     outputs.setdefault(deviceName, showIpIntBr)
-            # net_connect.disconnect()
-
-    except NetMikoTimeoutException:
-        print('The IP address: {} did not respond, it might be unreachable'.format(ipAddress))
-    except NetMikoAuthenticationException:
-        print('Authentication failed for IP address: {}'.format(ipAddress))
 
 
 def removefalsecommits(devicelist):
@@ -85,29 +84,29 @@ def listdictappend(listofdicts, dict2):
     for dict1 in listofdicts:
         dict1.update( dict2 )
 
-def readconfig(filename):
+def readcommands(filename):
+    configlines = []
     f = open(filename, "r")
     for line in f.readlines():
-        print(line)
+        configlines.append(line)
+    return configlines
 
-# username = sys.argv[1]
-# password = sys.argv[2]
-username = 'nolooking'
-password = 'definitelynotapassword'
+
+username = sys.argv[1]
+password = sys.argv[2]
+# username = 'nolooking'
+# password = 'definitelynotapassword'
 
 
 
 
 devices = excelimportcol('workbook.xlsx')
-print(devices)
 removefalsecommits(devices)
-
-deviceappend = {'device_type': 'autodetect', 'username': username, 'password': password}
+deviceappend = {'username': username, 'password': password}
 listdictappend(devices, deviceappend)
+commandset = readcommands('config.txt')
 
-# readconfig('config.txt')
-
-print(devices)
-#pprint.pprint(devices)
-for devicedict in devices:
-    gathershowoutput(devicedict, 'seanyboy')
+for device in devices:
+    devicekwargs = kwargsfromdict(device)
+    connection = get_connection(devicekwargs)
+    sendcommands(connection, commandset, device['Hostname'])
