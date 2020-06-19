@@ -22,25 +22,27 @@ def excelimportcol(filename, sheetname='Sheet1'):
         excellist.append(config)
     return excellist
 
+
 def autodetect(connect_kwargs):
     try:
         net_connect = SSHDetect(**connect_kwargs)
         print(net_connect.autodetect())
+        return net_connect
 
     except NetMikoTimeoutException:
-        print('The IP address: {} did not respond, it might be unreachable'.format())
+        print('The IP address: {} did not respond, it might be unreachable'.format(connect_kwargs['host']))
     except NetMikoAuthenticationException:
-        print('Authentication failed for IP address: {}'.format(ipAddress))
+        print('Authentication failed for IP address: {}'.format(connect_kwargs['host']))
+
 
 def get_connection(connect_kwargs):
     try:
-        net_connect = ConnectHandler(**connect_kwargs)
-        print(net_connect.autodetect())
+        return ConnectHandler(**connect_kwargs)
 
     except NetMikoTimeoutException:
-        print('The IP address: {} did not respond, it might be unreachable'.format(ipAddress))
+        print('The IP address: {} did not respond, it might be unreachable'.format(connect_kwargs['host']))
     except NetMikoAuthenticationException:
-        print('Authentication failed for IP address: {}'.format(ipAddress))
+        print('Authentication failed for IP address: {}'.format(connect_kwargs['host']))
 
 
 def gathershowoutput(device, name):
