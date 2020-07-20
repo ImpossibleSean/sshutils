@@ -72,9 +72,7 @@ def sendcommands(net_connect, commandset, name):
 
 def removefalsecommits(devicelist):
     for devicedict in devicelist:
-        if devicedict['Commit'] == 'True':
-            next
-        else:
+        if devicedict['Commit'] != 'True':
             pprint.pprint('Removing element ')
             pprint.pprint(devicedict)
             devicelist.remove(devicedict)
@@ -92,20 +90,20 @@ def readcommands(filename):
     return configlines
 
 
-username = sys.argv[1]
-password = sys.argv[2]
-# username = 'nolooking'
-# password = 'definitelynotapassword'
+# username = sys.argv[1]
+# password = sys.argv[2]
+username = 'nolooking'
+password = 'definitelynotapassword'
 
 
 
 
-devices = excelimportcol('workbook.xlsx')
+devices = excelimportcol('devices.xlsx')
 removefalsecommits(devices)
 deviceappend = {'username': username, 'password': password}
 listdictappend(devices, deviceappend)
 commandset = readcommands('config.txt')
-
+pprint.pprint(devices)
 for device in devices:
     devicekwargs = kwargsfromdict(device)
     connection = get_connection(devicekwargs)
