@@ -1,5 +1,6 @@
 import openpyxl
 import sys
+import getpass
 import pprint
 from netmiko import SSHDetect
 from netmiko import ConnectHandler
@@ -93,7 +94,7 @@ def readcommands(filename):
 # username = sys.argv[1]
 # password = sys.argv[2]
 username = 'nolooking'
-password = 'definitelynotapassword'
+password = getpass.getpass()
 
 
 
